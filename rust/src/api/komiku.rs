@@ -88,6 +88,77 @@ impl KomikuScraper {
         Ok(list)
     }
 
+    pub async fn get_manga_by_genre(&self, genre: &str, page: u32) -> Result<Vec<MangaSummary>> {
+        let url = if page <= 1 {
+            format!("https://api.komiku.org/genre/{}/", genre)
+        } else {
+            format!("https://api.komiku.org/genre/{}/page/{}/", genre, page)
+        };
+
+        let resp = self.client.get(&url)
+            .header("Referer", "https://komiku.org/")
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let doc = Html::parse_document(&resp);
+        let bge_selector = Selector::parse(".bge").unwrap();
+        let title_selector = Selector::parse(".kan h3").unwrap();
+        let link_selector = Selector::parse(".bgei a").unwrap();
+        let img_selector = Selector::parse(".bgei img").unwrap();
+        let type_selector = Selector::parse(".tpe1_inf b").unwrap();
+        let desc_selector = Selector::parse(".kan p").unwrap();
+        let latest_ch_selector = Selector::parse(".kan .new1:last-child a span:last-child").unwrap();
+
+        let mut list = Vec::new();
+
+        for element in doc.select(&bge_selector) {
+            let title = element.select(&title_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_default();
+
+            if title.is_empty() {
+                continue;
+            }
+
+            let link = element.select(&link_selector).next()
+                .and_then(|e| e.value().attr("href"))
+                .unwrap_or_default();
+
+            let id = link.trim_matches('/').replace("https://komiku.org/manga/", "").replace("manga/", "");
+
+            let thumbnail = element.select(&img_selector).next()
+                .and_then(|e| e.value().attr("src"))
+                .unwrap_or_default()
+                .to_string();
+
+            let type_name = element.select(&type_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_else(|| "Manga".to_string());
+
+            let description = element.select(&desc_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_default();
+
+            let latest_chapter = element.select(&latest_ch_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_default();
+
+            list.push(MangaSummary {
+                id,
+                title,
+                thumbnail,
+                latest_chapter,
+                type_name,
+                description,
+                source: crate::api::models::MangaSource::Komiku,
+            });
+        }
+
+        Ok(list)
+    }
+
     pub async fn search_manga(&self, query: &str) -> Result<Vec<MangaSummary>> {
         let url = format!("https://api.komiku.org/manga/?post_type=manga&s={}", query);
 

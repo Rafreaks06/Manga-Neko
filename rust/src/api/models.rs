@@ -66,3 +66,18 @@ pub struct HistoryItem {
     pub last_page: u32,
     pub updated_at: i64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DownloadedChapter {
+    pub chapter_id: String,
+    pub manga_id: String,
+    pub manga_title: String,
+    pub chapter_title: String,
+    pub chapter_path: String,
+    pub thumbnail: String,
+    pub source: MangaSource,
+    pub local_dir: String,
+    pub page_count: u32,
+    pub downloaded_at: i64,
+}
+

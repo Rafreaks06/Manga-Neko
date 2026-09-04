@@ -87,6 +87,76 @@ impl KomikindoScraper {
         Ok(list)
     }
 
+    pub async fn get_manga_by_genre(&self, genre: &str, page: u32) -> Result<Vec<MangaSummary>> {
+        let url = if page <= 1 {
+            format!("https://komikindo.ch/genres/{}/", genre)
+        } else {
+            format!("https://komikindo.ch/genres/{}/page/{}/", genre, page)
+        };
+
+        let resp = self.client.get(&url)
+            .header("Referer", "https://komikindo.ch/")
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let doc = Html::parse_document(&resp);
+        let post_selector = Selector::parse(".animepost").unwrap();
+        let title_selector = Selector::parse(".tt h3 a, .tt h4 a").unwrap();
+        let link_selector = Selector::parse(".animposx a").unwrap();
+        let img_selector = Selector::parse(".limit img").unwrap();
+        let type_selector = Selector::parse(".typeflag").unwrap();
+        let latest_ch_selector = Selector::parse(".lsch a").unwrap();
+
+        let mut list = Vec::new();
+
+        for element in doc.select(&post_selector) {
+            let title = element.select(&title_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_default();
+
+            if title.is_empty() {
+                continue;
+            }
+
+            let link = element.select(&link_selector).next()
+                .and_then(|e| e.value().attr("href"))
+                .unwrap_or_default();
+
+            let id = link.trim_matches('/').replace("https://komikindo.ch/komik/", "").replace("http://komikindo.ch/komik/", "");
+
+            let thumbnail = element.select(&img_selector).next()
+                .and_then(|e| e.value().attr("src"))
+                .unwrap_or_default()
+                .to_string();
+
+            let type_name = element.select(&type_selector).next()
+                .map(|e| {
+                    let class_attr = e.value().attr("class").unwrap_or("");
+                    class_attr.replace("typeflag", "").trim().to_string()
+                })
+                .filter(|s| !s.is_empty())
+                .unwrap_or_else(|| "Manga".to_string());
+
+            let latest_chapter = element.select(&latest_ch_selector).next()
+                .map(|e| e.text().collect::<Vec<_>>().join("").trim().to_string())
+                .unwrap_or_default();
+
+            list.push(MangaSummary {
+                id,
+                title,
+                thumbnail,
+                latest_chapter,
+                type_name,
+                description: String::new(),
+                source: crate::api::models::MangaSource::Komikindo,
+            });
+        }
+
+        Ok(list)
+    }
+
     pub async fn search_manga(&self, query: &str) -> Result<Vec<MangaSummary>> {
         let url = format!("https://komikindo.ch/?s={}", query);
 

@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use rusqlite::{params, Connection};
 use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::api::models::{BookmarkItem, HistoryItem, MangaSource};
+use crate::api::models::{BookmarkItem, DownloadedChapter, HistoryItem, MangaSource};
 
 static DB_CONN: OnceLock<Mutex<Connection>> = OnceLock::new();
 
@@ -34,6 +34,20 @@ impl DatabaseManager {
                 last_page INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL,
                 PRIMARY KEY (manga_id, source)
+            );
+
+            CREATE TABLE IF NOT EXISTS downloaded_chapters (
+                chapter_id TEXT NOT NULL,
+                manga_id TEXT NOT NULL,
+                source TEXT NOT NULL,
+                manga_title TEXT NOT NULL,
+                chapter_title TEXT NOT NULL,
+                chapter_path TEXT NOT NULL,
+                thumbnail TEXT NOT NULL,
+                local_dir TEXT NOT NULL,
+                page_count INTEGER NOT NULL,
+                downloaded_at INTEGER NOT NULL,
+                PRIMARY KEY (chapter_id, source)
             );
             ",
         )?;
@@ -202,5 +216,99 @@ impl DatabaseManager {
         let conn = mutex.lock();
         conn.execute("DELETE FROM reading_history", [])?;
         Ok(())
+    }
+
+    pub fn save_downloaded_chapter(chapter: DownloadedChapter) -> Result<()> {
+        let mutex = Self::get_conn()?;
+        let conn = mutex.lock();
+        let src_str = Self::source_to_string(&chapter.source);
+
+        conn.execute(
+            "INSERT OR REPLACE INTO downloaded_chapters
+             (chapter_id, manga_id, source, manga_title, chapter_title, chapter_path, thumbnail, local_dir, page_count, downloaded_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![
+                chapter.chapter_id,
+                chapter.manga_id,
+                src_str,
+                chapter.manga_title,
+                chapter.chapter_title,
+                chapter.chapter_path,
+                chapter.thumbnail,
+                chapter.local_dir,
+                chapter.page_count,
+                chapter.downloaded_at,
+            ],
+        )?;
+
+        Ok(())
+    }
+
+    pub fn get_downloaded_chapters() -> Result<Vec<DownloadedChapter>> {
+        let mutex = Self::get_conn()?;
+        let conn = mutex.lock();
+
+        let mut stmt = conn.prepare(
+            "SELECT chapter_id, manga_id, source, manga_title, chapter_title, chapter_path, thumbnail, local_dir, page_count, downloaded_at
+             FROM downloaded_chapters ORDER BY downloaded_at DESC",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            let src_str: String = row.get(2)?;
+            Ok(DownloadedChapter {
+                chapter_id: row.get(0)?,
+                manga_id: row.get(1)?,
+                source: Self::string_to_source(&src_str),
+                manga_title: row.get(3)?,
+                chapter_title: row.get(4)?,
+                chapter_path: row.get(5)?,
+                thumbnail: row.get(6)?,
+                local_dir: row.get(7)?,
+                page_count: row.get(8)?,
+                downloaded_at: row.get(9)?,
+            })
+        })?;
+
+        let mut list = Vec::new();
+        for item in rows {
+            list.push(item?);
+        }
+
+        Ok(list)
+    }
+
+    pub fn delete_downloaded_chapter(source: MangaSource, chapter_id: String) -> Result<String> {
+        let mutex = Self::get_conn()?;
+        let conn = mutex.lock();
+        let src_str = Self::source_to_string(&source);
+
+        let local_dir: Option<String> = conn
+            .query_row(
+                "SELECT local_dir FROM downloaded_chapters WHERE chapter_id = ?1 AND source = ?2",
+                params![chapter_id, src_str],
+                |row| row.get(0),
+            )
+            .ok();
+
+        conn.execute(
+            "DELETE FROM downloaded_chapters WHERE chapter_id = ?1 AND source = ?2",
+            params![chapter_id, src_str],
+        )?;
+
+        Ok(local_dir.unwrap_or_default())
+    }
+
+    pub fn is_chapter_downloaded(source: MangaSource, chapter_id: String) -> Result<bool> {
+        let mutex = Self::get_conn()?;
+        let conn = mutex.lock();
+        let src_str = Self::source_to_string(&source);
+
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(1) FROM downloaded_chapters WHERE chapter_id = ?1 AND source = ?2",
+            params![chapter_id, src_str],
+            |row| row.get(0),
+        )?;
+
+        Ok(count > 0)
     }
 }

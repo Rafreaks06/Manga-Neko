@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 class BookmarkItem {
   final String mangaId;
@@ -94,6 +94,61 @@ class ChapterPages {
           chapterId == other.chapterId &&
           title == other.title &&
           images == other.images;
+}
+
+class DownloadedChapter {
+  final String chapterId;
+  final String mangaId;
+  final String mangaTitle;
+  final String chapterTitle;
+  final String chapterPath;
+  final String thumbnail;
+  final MangaSource source;
+  final String localDir;
+  final int pageCount;
+  final PlatformInt64 downloadedAt;
+
+  const DownloadedChapter({
+    required this.chapterId,
+    required this.mangaId,
+    required this.mangaTitle,
+    required this.chapterTitle,
+    required this.chapterPath,
+    required this.thumbnail,
+    required this.source,
+    required this.localDir,
+    required this.pageCount,
+    required this.downloadedAt,
+  });
+
+  @override
+  int get hashCode =>
+      chapterId.hashCode ^
+      mangaId.hashCode ^
+      mangaTitle.hashCode ^
+      chapterTitle.hashCode ^
+      chapterPath.hashCode ^
+      thumbnail.hashCode ^
+      source.hashCode ^
+      localDir.hashCode ^
+      pageCount.hashCode ^
+      downloadedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DownloadedChapter &&
+          runtimeType == other.runtimeType &&
+          chapterId == other.chapterId &&
+          mangaId == other.mangaId &&
+          mangaTitle == other.mangaTitle &&
+          chapterTitle == other.chapterTitle &&
+          chapterPath == other.chapterPath &&
+          thumbnail == other.thumbnail &&
+          source == other.source &&
+          localDir == other.localDir &&
+          pageCount == other.pageCount &&
+          downloadedAt == other.downloadedAt;
 }
 
 class HistoryItem {

@@ -4,7 +4,7 @@ pub mod komikindo;
 pub mod db;
 pub mod simple;
 
-use crate::api::models::{BookmarkItem, ChapterPages, HistoryItem, MangaDetail, MangaSource, MangaSummary};
+use crate::api::models::{BookmarkItem, ChapterPages, DownloadedChapter, HistoryItem, MangaDetail, MangaSource, MangaSummary};
 use crate::api::komiku::KomikuScraper;
 use crate::api::komikindo::KomikindoScraper;
 use crate::api::db::DatabaseManager;
@@ -68,6 +68,23 @@ pub fn clear_history() -> Result<(), String> {
     DatabaseManager::clear_history().map_err(|e| e.to_string())
 }
 
+pub fn save_downloaded_chapter(chapter: DownloadedChapter) -> Result<(), String> {
+    DatabaseManager::save_downloaded_chapter(chapter).map_err(|e| e.to_string())
+}
+
+pub fn get_downloaded_chapters() -> Result<Vec<DownloadedChapter>, String> {
+    DatabaseManager::get_downloaded_chapters().map_err(|e| e.to_string())
+}
+
+pub fn delete_downloaded_chapter(source: MangaSource, chapter_id: String) -> Result<String, String> {
+    DatabaseManager::delete_downloaded_chapter(source, chapter_id).map_err(|e| e.to_string())
+}
+
+pub fn is_chapter_downloaded(source: MangaSource, chapter_id: String) -> Result<bool, String> {
+    DatabaseManager::is_chapter_downloaded(source, chapter_id).map_err(|e| e.to_string())
+}
+
+
 pub async fn get_latest_manga(source: MangaSource, page: u32) -> Result<Vec<MangaSummary>, String> {
     match source {
         MangaSource::Komiku => {
@@ -77,6 +94,19 @@ pub async fn get_latest_manga(source: MangaSource, page: u32) -> Result<Vec<Mang
         MangaSource::Komikindo => {
             let scraper = KomikindoScraper::new();
             scraper.get_latest_manga(page).await.map_err(|e| e.to_string())
+        }
+    }
+}
+
+pub async fn get_manga_by_genre(source: MangaSource, genre: String, page: u32) -> Result<Vec<MangaSummary>, String> {
+    match source {
+        MangaSource::Komiku => {
+            let scraper = KomikuScraper::new();
+            scraper.get_manga_by_genre(&genre, page).await.map_err(|e| e.to_string())
+        }
+        MangaSource::Komikindo => {
+            let scraper = KomikindoScraper::new();
+            scraper.get_manga_by_genre(&genre, page).await.map_err(|e| e.to_string())
         }
     }
 }

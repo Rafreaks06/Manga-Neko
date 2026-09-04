@@ -28,8 +28,19 @@ class DatabaseManager {
   static Future<void> clearHistory() =>
       RustLib.instance.api.crateApiDbDatabaseManagerClearHistory();
 
+  static Future<String> deleteDownloadedChapter({
+    required MangaSource source,
+    required String chapterId,
+  }) => RustLib.instance.api.crateApiDbDatabaseManagerDeleteDownloadedChapter(
+    source: source,
+    chapterId: chapterId,
+  );
+
   static Future<List<BookmarkItem>> getBookmarks() =>
       RustLib.instance.api.crateApiDbDatabaseManagerGetBookmarks();
+
+  static Future<List<DownloadedChapter>> getDownloadedChapters() =>
+      RustLib.instance.api.crateApiDbDatabaseManagerGetDownloadedChapters();
 
   static Future<List<HistoryItem>> getHistory() =>
       RustLib.instance.api.crateApiDbDatabaseManagerGetHistory();
@@ -45,12 +56,26 @@ class DatabaseManager {
     mangaId: mangaId,
   );
 
+  static Future<bool> isChapterDownloaded({
+    required MangaSource source,
+    required String chapterId,
+  }) => RustLib.instance.api.crateApiDbDatabaseManagerIsChapterDownloaded(
+    source: source,
+    chapterId: chapterId,
+  );
+
   static Future<void> removeBookmark({
     required MangaSource source,
     required String mangaId,
   }) => RustLib.instance.api.crateApiDbDatabaseManagerRemoveBookmark(
     source: source,
     mangaId: mangaId,
+  );
+
+  static Future<void> saveDownloadedChapter({
+    required DownloadedChapter chapter,
+  }) => RustLib.instance.api.crateApiDbDatabaseManagerSaveDownloadedChapter(
+    chapter: chapter,
   );
 
   static Future<void> saveHistory({

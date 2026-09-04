@@ -85,6 +85,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  DownloadedChapter dco_decode_box_autoadd_downloaded_chapter(dynamic raw);
+
+  @protected
   ChapterItem dco_decode_chapter_item(dynamic raw);
 
   @protected
@@ -92,6 +95,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DatabaseManager dco_decode_database_manager(dynamic raw);
+
+  @protected
+  DownloadedChapter dco_decode_downloaded_chapter(dynamic raw);
 
   @protected
   HistoryItem dco_decode_history_item(dynamic raw);
@@ -110,6 +116,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ChapterItem> dco_decode_list_chapter_item(dynamic raw);
+
+  @protected
+  List<DownloadedChapter> dco_decode_list_downloaded_chapter(dynamic raw);
 
   @protected
   List<HistoryItem> dco_decode_list_history_item(dynamic raw);
@@ -190,6 +199,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  DownloadedChapter sse_decode_box_autoadd_downloaded_chapter(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChapterItem sse_decode_chapter_item(SseDeserializer deserializer);
 
   @protected
@@ -197,6 +211,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DatabaseManager sse_decode_database_manager(SseDeserializer deserializer);
+
+  @protected
+  DownloadedChapter sse_decode_downloaded_chapter(SseDeserializer deserializer);
 
   @protected
   HistoryItem sse_decode_history_item(SseDeserializer deserializer);
@@ -217,6 +234,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ChapterItem> sse_decode_list_chapter_item(SseDeserializer deserializer);
+
+  @protected
+  List<DownloadedChapter> sse_decode_list_downloaded_chapter(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<HistoryItem> sse_decode_list_history_item(SseDeserializer deserializer);
@@ -308,6 +330,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_downloaded_chapter(
+    DownloadedChapter self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_chapter_item(ChapterItem self, SseSerializer serializer);
 
   @protected
@@ -316,6 +344,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_database_manager(
     DatabaseManager self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_downloaded_chapter(
+    DownloadedChapter self,
     SseSerializer serializer,
   );
 
@@ -340,6 +374,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_chapter_item(
     List<ChapterItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_downloaded_chapter(
+    List<DownloadedChapter> self,
     SseSerializer serializer,
   );
 

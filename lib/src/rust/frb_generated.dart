@@ -75,7 +75,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1787296483;
+  int get rustContentHash => 1017845001;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -94,6 +94,12 @@ abstract class RustLibApi extends BaseApi {
 
   Future<List<MangaSummary>> crateApiKomikindoKomikindoScraperGetLatestManga({
     required KomikindoScraper that,
+    required int page,
+  });
+
+  Future<List<MangaSummary>> crateApiKomikindoKomikindoScraperGetMangaByGenre({
+    required KomikindoScraper that,
+    required String genre,
     required int page,
   });
 
@@ -116,6 +122,12 @@ abstract class RustLibApi extends BaseApi {
 
   Future<List<MangaSummary>> crateApiKomikuKomikuScraperGetLatestManga({
     required KomikuScraper that,
+    required int page,
+  });
+
+  Future<List<MangaSummary>> crateApiKomikuKomikuScraperGetMangaByGenre({
+    required KomikuScraper that,
+    required String genre,
     required int page,
   });
 
@@ -149,7 +161,15 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiDbDatabaseManagerClearHistory();
 
+  Future<String> crateApiDbDatabaseManagerDeleteDownloadedChapter({
+    required MangaSource source,
+    required String chapterId,
+  });
+
   Future<List<BookmarkItem>> crateApiDbDatabaseManagerGetBookmarks();
+
+  Future<List<DownloadedChapter>>
+  crateApiDbDatabaseManagerGetDownloadedChapters();
 
   Future<List<HistoryItem>> crateApiDbDatabaseManagerGetHistory();
 
@@ -160,9 +180,18 @@ abstract class RustLibApi extends BaseApi {
     required String mangaId,
   });
 
+  Future<bool> crateApiDbDatabaseManagerIsChapterDownloaded({
+    required MangaSource source,
+    required String chapterId,
+  });
+
   Future<void> crateApiDbDatabaseManagerRemoveBookmark({
     required MangaSource source,
     required String mangaId,
+  });
+
+  Future<void> crateApiDbDatabaseManagerSaveDownloadedChapter({
+    required DownloadedChapter chapter,
   });
 
   Future<void> crateApiDbDatabaseManagerSaveHistory({
@@ -175,6 +204,11 @@ abstract class RustLibApi extends BaseApi {
     required int lastPage,
   });
 
+  Future<String> crateApiDeleteDownloadedChapter({
+    required MangaSource source,
+    required String chapterId,
+  });
+
   Future<List<BookmarkItem>> crateApiGetBookmarks();
 
   Future<ChapterPages> crateApiGetChapterPages({
@@ -182,10 +216,18 @@ abstract class RustLibApi extends BaseApi {
     required String chapterPath,
   });
 
+  Future<List<DownloadedChapter>> crateApiGetDownloadedChapters();
+
   Future<List<HistoryItem>> crateApiGetHistory();
 
   Future<List<MangaSummary>> crateApiGetLatestManga({
     required MangaSource source,
+    required int page,
+  });
+
+  Future<List<MangaSummary>> crateApiGetMangaByGenre({
+    required MangaSource source,
+    required String genre,
     required int page,
   });
 
@@ -207,9 +249,18 @@ abstract class RustLibApi extends BaseApi {
     required String mangaId,
   });
 
+  Future<bool> crateApiIsChapterDownloaded({
+    required MangaSource source,
+    required String chapterId,
+  });
+
   Future<void> crateApiRemoveBookmark({
     required MangaSource source,
     required String mangaId,
+  });
+
+  Future<void> crateApiSaveDownloadedChapter({
+    required DownloadedChapter chapter,
   });
 
   Future<void> crateApiSaveHistory({
@@ -332,6 +383,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<List<MangaSummary>> crateApiKomikindoKomikindoScraperGetMangaByGenre({
+    required KomikindoScraper that,
+    required String genre,
+    required int page,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerKomikindoScraper(
+            that,
+            serializer,
+          );
+          sse_encode_String(genre, serializer);
+          sse_encode_u_32(page, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_manga_summary,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiKomikindoKomikindoScraperGetMangaByGenreConstMeta,
+        argValues: [that, genre, page],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiKomikindoKomikindoScraperGetMangaByGenreConstMeta =>
+      const TaskConstMeta(
+        debugName: "KomikindoScraper_get_manga_by_genre",
+        argNames: ["that", "genre", "page"],
+      );
+
+  @override
   Future<MangaDetail> crateApiKomikindoKomikindoScraperGetMangaDetail({
     required KomikindoScraper that,
     required String mangaId,
@@ -348,7 +440,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -378,7 +470,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -414,7 +506,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -452,7 +544,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -490,7 +582,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -512,6 +604,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<List<MangaSummary>> crateApiKomikuKomikuScraperGetMangaByGenre({
+    required KomikuScraper that,
+    required String genre,
+    required int page,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerKomikuScraper(
+            that,
+            serializer,
+          );
+          sse_encode_String(genre, serializer);
+          sse_encode_u_32(page, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_manga_summary,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiKomikuKomikuScraperGetMangaByGenreConstMeta,
+        argValues: [that, genre, page],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiKomikuKomikuScraperGetMangaByGenreConstMeta =>
+      const TaskConstMeta(
+        debugName: "KomikuScraper_get_manga_by_genre",
+        argNames: ["that", "genre", "page"],
+      );
+
+  @override
   Future<MangaDetail> crateApiKomikuKomikuScraperGetMangaDetail({
     required KomikuScraper that,
     required String mangaId,
@@ -528,7 +660,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -558,7 +690,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -594,7 +726,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 12,
             port: port_,
           );
         },
@@ -633,7 +765,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 13,
             port: port_,
           );
         },
@@ -662,7 +794,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 14,
             port: port_,
           );
         },
@@ -698,7 +830,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 15,
             port: port_,
           );
         },
@@ -728,7 +860,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 16,
             port: port_,
           );
         },
@@ -750,6 +882,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiDbDatabaseManagerDeleteDownloadedChapter({
+    required MangaSource source,
+    required String chapterId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_manga_source(source, serializer);
+          sse_encode_String(chapterId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiDbDatabaseManagerDeleteDownloadedChapterConstMeta,
+        argValues: [source, chapterId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiDbDatabaseManagerDeleteDownloadedChapterConstMeta =>
+      const TaskConstMeta(
+        debugName: "database_manager_delete_downloaded_chapter",
+        argNames: ["source", "chapterId"],
+      );
+
+  @override
   Future<List<BookmarkItem>> crateApiDbDatabaseManagerGetBookmarks() {
     return handler.executeNormal(
       NormalTask(
@@ -758,7 +926,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 18,
             port: port_,
           );
         },
@@ -780,6 +948,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<List<DownloadedChapter>>
+  crateApiDbDatabaseManagerGetDownloadedChapters() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_downloaded_chapter,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiDbDatabaseManagerGetDownloadedChaptersConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDbDatabaseManagerGetDownloadedChaptersConstMeta =>
+      const TaskConstMeta(
+        debugName: "database_manager_get_downloaded_chapters",
+        argNames: [],
+      );
+
+  @override
   Future<List<HistoryItem>> crateApiDbDatabaseManagerGetHistory() {
     return handler.executeNormal(
       NormalTask(
@@ -788,7 +987,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 20,
             port: port_,
           );
         },
@@ -819,7 +1018,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 21,
             port: port_,
           );
         },
@@ -854,7 +1053,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 22,
             port: port_,
           );
         },
@@ -876,6 +1075,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<bool> crateApiDbDatabaseManagerIsChapterDownloaded({
+    required MangaSource source,
+    required String chapterId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_manga_source(source, serializer);
+          sse_encode_String(chapterId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiDbDatabaseManagerIsChapterDownloadedConstMeta,
+        argValues: [source, chapterId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDbDatabaseManagerIsChapterDownloadedConstMeta =>
+      const TaskConstMeta(
+        debugName: "database_manager_is_chapter_downloaded",
+        argNames: ["source", "chapterId"],
+      );
+
+  @override
   Future<void> crateApiDbDatabaseManagerRemoveBookmark({
     required MangaSource source,
     required String mangaId,
@@ -889,7 +1123,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 24,
             port: port_,
           );
         },
@@ -908,6 +1142,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "database_manager_remove_bookmark",
         argNames: ["source", "mangaId"],
+      );
+
+  @override
+  Future<void> crateApiDbDatabaseManagerSaveDownloadedChapter({
+    required DownloadedChapter chapter,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_downloaded_chapter(chapter, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 25,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiDbDatabaseManagerSaveDownloadedChapterConstMeta,
+        argValues: [chapter],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDbDatabaseManagerSaveDownloadedChapterConstMeta =>
+      const TaskConstMeta(
+        debugName: "database_manager_save_downloaded_chapter",
+        argNames: ["chapter"],
       );
 
   @override
@@ -934,7 +1201,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 26,
             port: port_,
           );
         },
@@ -972,6 +1239,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiDeleteDownloadedChapter({
+    required MangaSource source,
+    required String chapterId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_manga_source(source, serializer);
+          sse_encode_String(chapterId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiDeleteDownloadedChapterConstMeta,
+        argValues: [source, chapterId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiDeleteDownloadedChapterConstMeta =>
+      const TaskConstMeta(
+        debugName: "delete_downloaded_chapter",
+        argNames: ["source", "chapterId"],
+      );
+
+  @override
   Future<List<BookmarkItem>> crateApiGetBookmarks() {
     return handler.executeNormal(
       NormalTask(
@@ -980,7 +1282,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1012,7 +1314,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1033,6 +1335,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<List<DownloadedChapter>> crateApiGetDownloadedChapters() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 30,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_downloaded_chapter,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGetDownloadedChaptersConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiGetDownloadedChaptersConstMeta =>
+      const TaskConstMeta(debugName: "get_downloaded_chapters", argNames: []);
+
+  @override
   Future<List<HistoryItem>> crateApiGetHistory() {
     return handler.executeNormal(
       NormalTask(
@@ -1041,7 +1370,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1073,7 +1402,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1094,6 +1423,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<List<MangaSummary>> crateApiGetMangaByGenre({
+    required MangaSource source,
+    required String genre,
+    required int page,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_manga_source(source, serializer);
+          sse_encode_String(genre, serializer);
+          sse_encode_u_32(page, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 33,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_manga_summary,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiGetMangaByGenreConstMeta,
+        argValues: [source, genre, page],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiGetMangaByGenreConstMeta => const TaskConstMeta(
+    debugName: "get_manga_by_genre",
+    argNames: ["source", "genre", "page"],
+  );
+
+  @override
   Future<MangaDetail> crateApiGetMangaDetail({
     required MangaSource source,
     required String mangaId,
@@ -1107,7 +1472,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1134,7 +1499,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -1159,7 +1524,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1186,7 +1551,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 37,
             port: port_,
           );
         },
@@ -1214,7 +1579,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1246,7 +1611,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1267,6 +1632,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<bool> crateApiIsChapterDownloaded({
+    required MangaSource source,
+    required String chapterId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_manga_source(source, serializer);
+          sse_encode_String(chapterId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 40,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiIsChapterDownloadedConstMeta,
+        argValues: [source, chapterId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiIsChapterDownloadedConstMeta =>
+      const TaskConstMeta(
+        debugName: "is_chapter_downloaded",
+        argNames: ["source", "chapterId"],
+      );
+
+  @override
   Future<void> crateApiRemoveBookmark({
     required MangaSource source,
     required String mangaId,
@@ -1280,7 +1680,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1299,6 +1699,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     debugName: "remove_bookmark",
     argNames: ["source", "mangaId"],
   );
+
+  @override
+  Future<void> crateApiSaveDownloadedChapter({
+    required DownloadedChapter chapter,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_downloaded_chapter(chapter, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 42,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiSaveDownloadedChapterConstMeta,
+        argValues: [chapter],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSaveDownloadedChapterConstMeta =>
+      const TaskConstMeta(
+        debugName: "save_downloaded_chapter",
+        argNames: ["chapter"],
+      );
 
   @override
   Future<void> crateApiSaveHistory({
@@ -1324,7 +1757,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 43,
             port: port_,
           );
         },
@@ -1374,7 +1807,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1498,6 +1931,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DownloadedChapter dco_decode_box_autoadd_downloaded_chapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_downloaded_chapter(raw);
+  }
+
+  @protected
   ChapterItem dco_decode_chapter_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1531,6 +1970,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.isNotEmpty)
       throw Exception('unexpected arr length: expect 0 but see ${arr.length}');
     return DatabaseManager();
+  }
+
+  @protected
+  DownloadedChapter dco_decode_downloaded_chapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    return DownloadedChapter(
+      chapterId: dco_decode_String(arr[0]),
+      mangaId: dco_decode_String(arr[1]),
+      mangaTitle: dco_decode_String(arr[2]),
+      chapterTitle: dco_decode_String(arr[3]),
+      chapterPath: dco_decode_String(arr[4]),
+      thumbnail: dco_decode_String(arr[5]),
+      source: dco_decode_manga_source(arr[6]),
+      localDir: dco_decode_String(arr[7]),
+      pageCount: dco_decode_u_32(arr[8]),
+      downloadedAt: dco_decode_i_64(arr[9]),
+    );
   }
 
   @protected
@@ -1579,6 +2038,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<ChapterItem> dco_decode_list_chapter_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_chapter_item).toList();
+  }
+
+  @protected
+  List<DownloadedChapter> dco_decode_list_downloaded_chapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_downloaded_chapter).toList();
   }
 
   @protected
@@ -1776,6 +2241,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  DownloadedChapter sse_decode_box_autoadd_downloaded_chapter(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_downloaded_chapter(deserializer));
+  }
+
+  @protected
   ChapterItem sse_decode_chapter_item(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -1807,6 +2280,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   DatabaseManager sse_decode_database_manager(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return DatabaseManager();
+  }
+
+  @protected
+  DownloadedChapter sse_decode_downloaded_chapter(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_chapterId = sse_decode_String(deserializer);
+    var var_mangaId = sse_decode_String(deserializer);
+    var var_mangaTitle = sse_decode_String(deserializer);
+    var var_chapterTitle = sse_decode_String(deserializer);
+    var var_chapterPath = sse_decode_String(deserializer);
+    var var_thumbnail = sse_decode_String(deserializer);
+    var var_source = sse_decode_manga_source(deserializer);
+    var var_localDir = sse_decode_String(deserializer);
+    var var_pageCount = sse_decode_u_32(deserializer);
+    var var_downloadedAt = sse_decode_i_64(deserializer);
+    return DownloadedChapter(
+      chapterId: var_chapterId,
+      mangaId: var_mangaId,
+      mangaTitle: var_mangaTitle,
+      chapterTitle: var_chapterTitle,
+      chapterPath: var_chapterPath,
+      thumbnail: var_thumbnail,
+      source: var_source,
+      localDir: var_localDir,
+      pageCount: var_pageCount,
+      downloadedAt: var_downloadedAt,
+    );
   }
 
   @protected
@@ -1878,6 +2380,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <ChapterItem>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_chapter_item(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<DownloadedChapter> sse_decode_list_downloaded_chapter(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <DownloadedChapter>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_downloaded_chapter(deserializer));
     }
     return ans_;
   }
@@ -2103,6 +2619,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_downloaded_chapter(
+    DownloadedChapter self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_downloaded_chapter(self, serializer);
+  }
+
+  @protected
   void sse_encode_chapter_item(ChapterItem self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
@@ -2125,6 +2650,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_downloaded_chapter(
+    DownloadedChapter self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.chapterId, serializer);
+    sse_encode_String(self.mangaId, serializer);
+    sse_encode_String(self.mangaTitle, serializer);
+    sse_encode_String(self.chapterTitle, serializer);
+    sse_encode_String(self.chapterPath, serializer);
+    sse_encode_String(self.thumbnail, serializer);
+    sse_encode_manga_source(self.source, serializer);
+    sse_encode_String(self.localDir, serializer);
+    sse_encode_u_32(self.pageCount, serializer);
+    sse_encode_i_64(self.downloadedAt, serializer);
   }
 
   @protected
@@ -2182,6 +2725,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_chapter_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_downloaded_chapter(
+    List<DownloadedChapter> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_downloaded_chapter(item, serializer);
     }
   }
 
@@ -2310,6 +2865,15 @@ class KomikindoScraperImpl extends RustOpaque implements KomikindoScraper {
       .api
       .crateApiKomikindoKomikindoScraperGetLatestManga(that: this, page: page);
 
+  Future<List<MangaSummary>> getMangaByGenre({
+    required String genre,
+    required int page,
+  }) => RustLib.instance.api.crateApiKomikindoKomikindoScraperGetMangaByGenre(
+    that: this,
+    genre: genre,
+    page: page,
+  );
+
   Future<MangaDetail> getMangaDetail({required String mangaId}) =>
       RustLib.instance.api.crateApiKomikindoKomikindoScraperGetMangaDetail(
         that: this,
@@ -2351,6 +2915,15 @@ class KomikuScraperImpl extends RustOpaque implements KomikuScraper {
       .instance
       .api
       .crateApiKomikuKomikuScraperGetLatestManga(that: this, page: page);
+
+  Future<List<MangaSummary>> getMangaByGenre({
+    required String genre,
+    required int page,
+  }) => RustLib.instance.api.crateApiKomikuKomikuScraperGetMangaByGenre(
+    that: this,
+    genre: genre,
+    page: page,
+  );
 
   Future<MangaDetail> getMangaDetail({required String mangaId}) => RustLib
       .instance

@@ -63,10 +63,42 @@ Future<List<HistoryItem>> getHistory() =>
 
 Future<void> clearHistory() => RustLib.instance.api.crateApiClearHistory();
 
+Future<void> saveDownloadedChapter({required DownloadedChapter chapter}) =>
+    RustLib.instance.api.crateApiSaveDownloadedChapter(chapter: chapter);
+
+Future<List<DownloadedChapter>> getDownloadedChapters() =>
+    RustLib.instance.api.crateApiGetDownloadedChapters();
+
+Future<String> deleteDownloadedChapter({
+  required MangaSource source,
+  required String chapterId,
+}) => RustLib.instance.api.crateApiDeleteDownloadedChapter(
+  source: source,
+  chapterId: chapterId,
+);
+
+Future<bool> isChapterDownloaded({
+  required MangaSource source,
+  required String chapterId,
+}) => RustLib.instance.api.crateApiIsChapterDownloaded(
+  source: source,
+  chapterId: chapterId,
+);
+
 Future<List<MangaSummary>> getLatestManga({
   required MangaSource source,
   required int page,
 }) => RustLib.instance.api.crateApiGetLatestManga(source: source, page: page);
+
+Future<List<MangaSummary>> getMangaByGenre({
+  required MangaSource source,
+  required String genre,
+  required int page,
+}) => RustLib.instance.api.crateApiGetMangaByGenre(
+  source: source,
+  genre: genre,
+  page: page,
+);
 
 Future<List<MangaSummary>> searchManga({
   required MangaSource source,

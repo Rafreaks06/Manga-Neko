@@ -14,6 +14,11 @@ abstract class KomikuScraper implements RustOpaqueInterface {
 
   Future<List<MangaSummary>> getLatestManga({required int page});
 
+  Future<List<MangaSummary>> getMangaByGenre({
+    required String genre,
+    required int page,
+  });
+
   Future<MangaDetail> getMangaDetail({required String mangaId});
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.

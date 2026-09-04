@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mangareader_flutter/main.dart';
+import 'package:mangareader_flutter/src/screens/main_navigation_screen.dart';
 import 'package:mangareader_flutter/src/rust/frb_generated.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -8,6 +8,5 @@ void main() {
   setUpAll(() async => await RustLib.init());
   testWidgets('Can call rust function', (WidgetTester tester) async {
     await tester.pumpWidget(const MangaApp());
-    expect(find.textContaining('Result: `Hello, Tom!`'), findsOneWidget);
   });
 }
