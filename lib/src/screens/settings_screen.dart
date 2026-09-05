@@ -217,7 +217,7 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
-                  'Manga Reader v1.0.0',
+                  'Manga Neko v1.0.0',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 SizedBox(height: 4),

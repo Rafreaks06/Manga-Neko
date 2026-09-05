@@ -57,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   const Flexible(
                     child: Text(
-                      'Manga Reader',
+                      'Manga Neko',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

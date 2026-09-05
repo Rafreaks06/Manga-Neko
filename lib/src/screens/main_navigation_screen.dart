@@ -14,7 +14,7 @@ class MangaApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
-      title: 'Manga Reader',
+      title: 'Manga Neko',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: ThemeData.light(useMaterial3: true).copyWith(
