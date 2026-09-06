@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ReaderImageItem extends StatefulWidget {
   final String imageUrl;
@@ -26,17 +27,19 @@ class _ReaderImageItemState extends State<ReaderImageItem> {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        Image.network(
-          widget.imageUrl,
+        CachedNetworkImage(
+          imageUrl: widget.imageUrl,
           key: ValueKey('${widget.imageUrl}_$_retryKey'),
+          cacheKey: '${widget.imageUrl}_$_retryKey',
           fit: BoxFit.fitWidth,
-          headers: {
+          memCacheWidth: 1080,
+          maxWidthDiskCache: 1200,
+          httpHeaders: {
             'Referer': widget.referer,
             'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
+          progressIndicatorBuilder: (context, url, progress) {
             return Container(
               height: 350,
               color: Colors.black12,
@@ -45,9 +48,7 @@ class _ReaderImageItemState extends State<ReaderImageItem> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                          : null,
+                      value: progress.progress,
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -59,7 +60,7 @@ class _ReaderImageItemState extends State<ReaderImageItem> {
               ),
             );
           },
-          errorBuilder: (context, error, stackTrace) => Container(
+          errorWidget: (context, error, stackTrace) => Container(
             height: 220,
             color: Colors.black26,
             child: Center(

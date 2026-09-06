@@ -1,8 +1,25 @@
 use anyhow::Result;
 use scraper::{Html, Selector};
+use std::sync::OnceLock;
 use crate::api::models::{ChapterItem, ChapterPages, MangaDetail, MangaSummary};
 
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+static SHARED_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_shared_client() -> &'static reqwest::Client {
+    SHARED_CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .user_agent(USER_AGENT)
+            .timeout(std::time::Duration::from_secs(15))
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
+            .tcp_keepalive(std::time::Duration::from_secs(60))
+            .build()
+            .unwrap_or_default()
+    })
+}
 
 pub struct KomikindoScraper {
     client: reqwest::Client,
@@ -10,11 +27,9 @@ pub struct KomikindoScraper {
 
 impl KomikindoScraper {
     pub fn new() -> Self {
-        let client = reqwest::Client::builder()
-            .user_agent(USER_AGENT)
-            .build()
-            .unwrap_or_default();
-        Self { client }
+        Self {
+            client: get_shared_client().clone(),
+        }
     }
 
     pub async fn get_latest_manga(&self, page: u32) -> Result<Vec<MangaSummary>> {
@@ -224,7 +239,7 @@ impl KomikindoScraper {
     }
 
     pub async fn get_manga_detail(&self, manga_id: &str) -> Result<MangaDetail> {
-        let clean_id = manga_id.trim_matches('/');
+        let clean_id = manga_id.trim_matches('/').replace("https://komikindo.ch/komik/", "").replace("http://komikindo.ch/komik/", "").replace("komik/", "");
         let url = format!("https://komikindo.ch/komik/{}/", clean_id);
 
         let resp = self.client.get(&url)

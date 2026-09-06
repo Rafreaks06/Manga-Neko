@@ -22,6 +22,7 @@ class MangaCard extends ConsumerWidget {
               mangaId: item.id,
               title: item.title,
               source: currentSource,
+              thumbnail: item.thumbnail,
             ),
           ),
         );
@@ -41,6 +42,11 @@ class MangaCard extends ConsumerWidget {
                     CachedNetworkImage(
                       imageUrl: item.thumbnail,
                       fit: BoxFit.cover,
+                      httpHeaders: {
+                        'Referer': item.source == MangaSource.komikindo ? 'https://komikindo.ch/' : 'https://komiku.org/',
+                        'User-Agent':
+                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                      },
                       placeholder: (context, url) => Container(color: Colors.black12),
                       errorWidget: (context, url, error) => const Icon(Icons.broken_image),
                     )

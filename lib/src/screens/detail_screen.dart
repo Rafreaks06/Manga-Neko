@@ -10,12 +10,14 @@ class DetailScreen extends ConsumerWidget {
   final String mangaId;
   final String title;
   final MangaSource source;
+  final String? thumbnail;
 
   const DetailScreen({
     super.key,
     required this.mangaId,
     required this.title,
     required this.source,
+    this.thumbnail,
   });
 
   @override
@@ -24,9 +26,12 @@ class DetailScreen extends ConsumerWidget {
     final detail = ref.watch(mangaDetailProvider(detailParams));
     final isBmAsync = ref.watch(isBookmarkedProvider(detailParams));
 
+    final effectiveThumbnail = detail.value?.thumbnail ?? thumbnail ?? '';
+    final effectiveTitle = detail.value?.title ?? title;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(effectiveTitle),
         actions: [
           IconButton(
             icon: Icon(
@@ -42,8 +47,8 @@ class DetailScreen extends ConsumerWidget {
                 await rust_api.addBookmark(
                   source: source,
                   mangaId: mangaId,
-                  title: currentDetail?.title ?? title,
-                  thumbnail: currentDetail?.thumbnail ?? '',
+                  title: currentDetail?.title ?? effectiveTitle,
+                  thumbnail: currentDetail?.thumbnail ?? effectiveThumbnail,
                 );
               }
               ref.invalidate(isBookmarkedProvider(detailParams));
@@ -73,6 +78,11 @@ class DetailScreen extends ConsumerWidget {
                                 width: 110,
                                 height: 160,
                                 fit: BoxFit.cover,
+                                httpHeaders: {
+                                  'Referer': source == MangaSource.komikindo ? 'https://komikindo.ch/' : 'https://komiku.org/',
+                                  'User-Agent':
+                                      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                },
                               ),
                             ),
                           const SizedBox(width: 16),
@@ -167,8 +177,117 @@ class DetailScreen extends ConsumerWidget {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        loading: () {
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (effectiveThumbnail.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CachedNetworkImage(
+                                imageUrl: effectiveThumbnail,
+                                width: 110,
+                                height: 160,
+                                fit: BoxFit.cover,
+                                httpHeaders: {
+                                  'Referer': source == MangaSource.komikindo ? 'https://komikindo.ch/' : 'https://komiku.org/',
+                                  'User-Agent':
+                                      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                },
+                              ),
+                            )
+                          else
+                            Container(
+                              width: 110,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade800,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  effectiveTitle,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 12),
+                                const LinearProgressIndicator(),
+                                const SizedBox(height: 8),
+                                const Text('Memuat detail & chapter...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 32),
+                      const Text(
+                        'Daftar Chapter',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return ListTile(
+                      leading: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade800,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      title: Container(
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade800,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: 6,
+                ),
+              ),
+            ],
+          );
+        },
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+                const SizedBox(height: 12),
+                Text('Gagal memuat detail manga: $err', textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.invalidate(mangaDetailProvider(detailParams));
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

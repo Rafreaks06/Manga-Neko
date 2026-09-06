@@ -8,10 +8,10 @@ Aplikasi Manga & Manhwa Reader multi-platform berbasis **Flutter** dengan backen
 
 Versi rilis APK siap install di HP Android:
 
-- **Download**: [manga-neko-v1.0.0.apk](./releases/manga-neko-v1.0.0.apk) (atau cek di tab [GitHub Releases](https://github.com/Rafreaks06/Manga-Neko/releases))
-- **Versi**: `v1.0.0`
-- **Arsitektur**: `ARM64` (`arm64-v8a`)
-- **Ukuran File**: `~38 MB`
+- **Download**: [manga-neko-v1.0.1.apk](./releases/manga-neko-v1.0.1.apk) (atau cek di tab [GitHub Releases](https://github.com/Rafreaks06/Manga-Neko/releases))
+- **Versi**: `v1.0.1`
+- **Arsitektur**: Universal (`arm64-v8a` + `armeabi-v7a` 32-bit)
+- **Ukuran File**: `~53 MB`
 - **Min Android SDK**: Android 5.0 (Lollipop) / Rekomendasi Android 10+
 
 ---
@@ -141,8 +141,8 @@ mangareader_flutter/
 
 6. **Build Release APK Android**:
    ```bash
-   # Build APK Release (ARM64)
-   flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons
+   # Build APK Release Universal (32-bit & 64-bit)
+   flutter build apk --release --target-platform android-arm,android-arm64
    ```
 
 ---

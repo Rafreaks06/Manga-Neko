@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mangareader_flutter/src/providers/app_providers.dart';
 import 'package:mangareader_flutter/src/rust/api.dart' as rust_api;
+import 'package:mangareader_flutter/src/rust/api/models.dart';
 import 'package:mangareader_flutter/src/screens/reader_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
@@ -73,6 +74,11 @@ class HistoryScreen extends ConsumerWidget {
                           width: 44,
                           height: 60,
                           fit: BoxFit.cover,
+                          httpHeaders: {
+                            'Referer': item.source == MangaSource.komikindo ? 'https://komikindo.ch/' : 'https://komiku.org/',
+                            'User-Agent':
+                                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                          },
                         ),
                       )
                     : const Icon(Icons.book, size: 40),
