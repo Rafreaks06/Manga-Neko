@@ -8,11 +8,32 @@ Aplikasi Manga & Manhwa Reader multi-platform berbasis **Flutter** dengan backen
 
 Versi rilis APK siap install di HP Android:
 
-- **Download**: [manga-neko-v1.0.1.apk](./releases/manga-neko-v1.0.1.apk) (atau cek di tab [GitHub Releases](https://github.com/Rafreaks06/Manga-Neko/releases))
+- **Download Direct**: [manga-neko-v1.0.1.apk (GitHub Release)](https://github.com/Rafreaks06/Manga-Neko/releases/download/v1.0.1/manga-neko-v1.0.1.apk)
+- **Download Lokal**: [manga-neko-v1.0.1.apk](./releases/manga-neko-v1.0.1.apk)
+- **Semua Versi**: [GitHub Releases](https://github.com/Rafreaks06/Manga-Neko/releases)
 - **Versi**: `v1.0.1`
 - **Arsitektur**: Universal (`arm64-v8a` + `armeabi-v7a` 32-bit)
 - **Ukuran File**: `~53 MB`
 - **Min Android SDK**: Android 5.0 (Lollipop) / Rekomendasi Android 10+
+
+---
+
+## Apa yang Baru di v1.0.1
+
+- **Universal Multi-ABI Support**:
+  - Kompatibel penuh untuk arsitektur 64-bit (`arm64-v8a`) dan 32-bit (`armeabi-v7a`).
+  - Mengatasi crash force-close saat startup pada perangkat lawas / low-RAM (mis. Samsung Galaxy J4).
+  - Penambahan `android:largeHeap="true"` untuk stabilitas memori.
+- **Optimasi Rust Scraper & Ketahanan Jaringan**:
+  - Static shared connection pool (TCP Keep-Alive 60s, idle timeout 90s, connect timeout 10s, request timeout 15s).
+  - Injeksi header anti-bot `Referer` dan `User-Agent` untuk menghindari blokir request gambar/chapter.
+- **Transisi UI Instan (Zero Latency)**:
+  - Render cover thumbnail dan judul seketika (0ms) saat masuk ke detail manga.
+  - Skeleton loader beranimasi saat memuat daftar chapter di latar belakang.
+- **Optimasi Memori Reader**:
+  - Pembatasan resolusi decoding gambar reader (`memCacheWidth: 1080`) untuk mencegah kehabisan memori (OOM).
+- **Branding Baru**:
+  - App icon launcher resmi baru dengan proporsi logo terpusat (centered canvas).
 
 ---
 
@@ -45,6 +66,10 @@ Versi rilis APK siap install di HP Android:
 - **Bookmark & Riwayat Baca**:
   - Simpan manga favorit ke database lokal.
   - Catat riwayat chapter terakhir dibaca secara otomatis.
+- **Offline Chapter Downloader & Reader**:
+  - Download batch seluruh halaman chapter langsung ke storage disk lokal.
+  - Tracking persentase unduhan real-time via Riverpod StateNotifier.
+  - Offline reader bawaan untuk membaca tanpa koneksi internet langsung dari SQLite & disk.
 - **Optimized Reader UX & Customization**:
   - Pilihan mode baca: **Vertical Continuous** (Webtoon) & **Horizontal Slide** (Page-by-page).
   - Mode **Manga RTL** (Right-to-Left) untuk komik Jepang.
@@ -76,6 +101,7 @@ mangareader_flutter/
 │       ├── models/          # App settings & Dart models
 │       ├── providers/       # State management (Riverpod)
 │       ├── screens/         # Modular Screens (Home, Detail, Reader, Settings, etc)
+│       ├── services/        # Download Service & File Manager
 │       ├── widgets/         # Reusable UI components & Reader items
 │       └── rust/            # Auto-generated Dart-Rust Bridge Bindings
 ├── rust/                    # Rust Core Backend
