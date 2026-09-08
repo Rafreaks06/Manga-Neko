@@ -4,14 +4,96 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:mangareader_flutter/src/models/app_settings.dart';
 import 'package:mangareader_flutter/src/providers/app_providers.dart';
 import 'package:mangareader_flutter/src/rust/api.dart' as rust_api;
+import 'package:mangareader_flutter/src/theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  void _showAccentColorDialog(BuildContext context, WidgetRef ref, Color current) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pilih Warna Aksen'),
+        content: SingleChildScrollView(
+          child: Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            children: accentPresets.map((preset) {
+              final isSelected = current.toARGB32() == preset.color.toARGB32();
+              return GestureDetector(
+                onTap: () {
+                  ref.read(accentColorProvider.notifier).setAccentColor(preset.color);
+                  Navigator.pop(ctx);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: preset.color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? Theme.of(ctx).colorScheme.onSurface
+                              : Colors.transparent,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          if (isSelected)
+                            BoxShadow(
+                              color: preset.color.withValues(alpha: 0.6),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                        ],
+                      ),
+                      child: isSelected
+                          ? Icon(
+                              Icons.check,
+                              color: preset.color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: 72,
+                      child: Text(
+                        preset.label,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final readerMode = ref.watch(readerModeProvider);
+    final accentColor = ref.watch(accentColorProvider);
+    final showSensitive = ref.watch(showSensitiveGenresProvider);
+    final sectionStyle = TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.bold,
+      color: Theme.of(context).colorScheme.primary,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -19,19 +101,12 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Tampilan & Tema',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepOrange,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text('Tampilan & Tema', style: sectionStyle),
           ),
           ListTile(
-            leading: const Icon(Icons.palette_outlined),
+            leading: const Icon(Icons.brightness_6_outlined),
             title: const Text('Tema Aplikasi'),
             subtitle: Text(
               themeMode == ThemeMode.system
@@ -76,17 +151,68 @@ class SettingsScreen extends ConsumerWidget {
               );
             },
           ),
-          const Divider(),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Preferensi Reader',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepOrange,
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: const Text('Warna Aksen'),
+            subtitle: const Text('Warna utama untuk tombol, switch, & sorotan'),
+            trailing: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: accentColor,
+                shape: BoxShape.circle,
               ),
             ),
+            onTap: () => _showAccentColorDialog(context, ref, accentColor),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text('Batasan Konten', style: sectionStyle),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.shield_outlined),
+            title: const Text('Tampilkan Genre Dewasa'),
+            subtitle: Text(
+              showSensitive
+                  ? 'Konten sensitif (Ecchi, Gore, dll.) DITAMPILKAN di Eksplorasi & Pencarian.'
+                  : 'Konten sensitif (Ecchi, Gore, dll.) disembunyikan demi keamanan anak di bawah umur.',
+            ),
+            value: showSensitive,
+            onChanged: (value) async {
+              if (value) {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Tampilkan Konten Dewasa?'),
+                    content: const Text(
+                      'Konten sensitif seperti Ecchi dan Gore akan muncul di Eksplorasi dan Pencarian. '
+                      'Fitur ini tidak disarankan jika perangkat digunakan anak di bawah umur.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Batal'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Saya Mengerti'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm != true) return;
+              }
+              await ref.read(showSensitiveGenresProvider.notifier).setShowSensitive(value);
+              final source = ref.read(currentSourceProvider);
+              ref.invalidate(catalogProvider(source));
+              ref.invalidate(searchResultsProvider);
+            },
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text('Preferensi Reader', style: sectionStyle),
           ),
           ListTile(
             leading: const Icon(Icons.chrome_reader_mode_outlined),
@@ -131,16 +257,9 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
           const Divider(),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Penyimpanan & Cache',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepOrange,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text('Penyimpanan & Cache', style: sectionStyle),
           ),
           ListTile(
             leading: const Icon(Icons.cleaning_services_outlined),
@@ -217,7 +336,7 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
-                  'Manga Neko v1.0.0',
+                  'Manga Neko v1.1.0',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 SizedBox(height: 4),

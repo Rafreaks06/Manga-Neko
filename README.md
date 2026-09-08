@@ -8,13 +8,34 @@ Aplikasi Manga & Manhwa Reader multi-platform berbasis **Flutter** dengan backen
 
 Versi rilis APK siap install di HP Android:
 
-- **Download Direct**: [manga-neko-v1.0.1.apk (GitHub Release)](https://github.com/Rafreaks06/Manga-Neko/releases/download/v1.0.1/manga-neko-v1.0.1.apk)
-- **Download Lokal**: [manga-neko-v1.0.1.apk](./releases/manga-neko-v1.0.1.apk)
+- **Download Direct**: [manga-neko-v1.1.0.apk (GitHub Release)](https://github.com/Rafreaks06/Manga-Neko/releases/download/v1.1.0/manga-neko-v1.1.0.apk)
+- **Download Lokal**: [manga-neko-v1.1.0.apk](./releases/manga-neko-v1.1.0.apk)
 - **Semua Versi**: [GitHub Releases](https://github.com/Rafreaks06/Manga-Neko/releases)
-- **Versi**: `v1.0.1`
+- **Versi**: `v1.1.0`
 - **Arsitektur**: Universal (`arm64-v8a` + `armeabi-v7a` 32-bit)
-- **Ukuran File**: `~53 MB`
+- **Ukuran File**: `~72 MB`
 - **Min Android SDK**: Android 5.0 (Lollipop) / Rekomendasi Android 10+
+
+---
+
+## Apa yang Baru di v1.1.0
+
+- **Modernisasi UI Material 3 (Material You)**:
+  - Dynamic color tokens dari seed color via `ColorScheme.fromSeed` — seluruh komponen adaptif terhadap tema.
+  - Rounded corners lebih lembut: kartu (16px), dialog & bottom sheet (28px), FAB (20px), chip & tombol (12-16px).
+  - Navigation Bar bawah & FAB extended modern dengan indikator `primaryContainer`.
+- **Kustomisasi Warna Aksen (Dynamic Theme Selection)**:
+  - 8 preset warna aksen (Manga Orange, Neko Blue, Sakura Pink, Violet, Emerald, Sunset Red, Amber, Cyan).
+  - Warna aksen diterapkan pada button, active state, switch, progress bar, dan teks sorotan.
+  - Adaptif penuh untuk Light Mode & Dark Mode; pilihan tersimpan permanen.
+- **Filter Konten Sensitif (Content Restriction)**:
+  - Genre dewasa (Ecchi, Gore, Mature, dll.) disembunyikan secara default dari Eksplorasi & Pencarian demi keamanan pengguna anak di bawah umur.
+  - Opsi "Tampilkan Genre Dewasa" tersedia di Settings dengan dialog konfirmasi.
+- **Redesain UX Pemilihan Genre**:
+  - Genre kini tampil sebagai grid kartu visual dengan gradien mood per genre (gelap untuk Horror, aksi untuk Shounen, dll) + ikon.
+  - Multi-select responsif dengan indikator border menyala + badge checklist animasi.
+  - Bottom sheet "Pilih Genre" (drag-expandable) + baris genre cepat & FAB "Genre" di Home.
+  - Katalog mendukung filter beberapa genre sekaligus (hasil digabung otomatis).
 
 ---
 
@@ -58,8 +79,11 @@ Versi rilis APK siap install di HP Android:
   - **KomikIndo** (`komikindo.ch`)
   - Switcher provider instan di AppBar.
 - **Filter Genre & Kategori**:
-  - Filter Chips horizontal dinamis (Action, Romance, Isekai, Fantasy, School Life, Supernatural, dll).
-  - Pagination katalog otomatis mengikuti filter genre yang aktif.
+  - Grid genre visual multi-select dengan kartu gradien mood + ikon per genre.
+  - Dukungan filter beberapa genre sekaligus (union hasil + dedupe otomatis).
+  - Baris genre cepat di Home & bottom sheet "Pilih Genre" via FAB.
+- **Batasan Konten Sensitif**:
+  - Genre dewasa (Ecchi, Gore, dll.) tersembunyi default; dapat diaktifkan dari Settings.
 - **Katalog & Pencarian Cepat**:
   - Infinite scroll / Pagination katalog otomatis.
   - Live search filter per provider.
@@ -81,6 +105,8 @@ Versi rilis APK siap install di HP Android:
   - Navigasi chapter cepat: Prev / Next toolbar & modal list chapter.
 - **Pengaturan & Manajemen Cache**:
   - Pilihan Tema: Sistem, Terang, Gelap.
+  - Kustomisasi Warna Aksen (8 preset warna, adaptif Light/Dark).
+  - Batasan konten sensitif (sembunyikan genre dewasa).
   - Preferensi default mode baca.
   - Pembersih cache gambar (memory & disk).
   - Manajemen riwayat database SQLite.

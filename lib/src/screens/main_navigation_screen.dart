@@ -5,6 +5,7 @@ import 'package:mangareader_flutter/src/screens/bookmarks_screen.dart';
 import 'package:mangareader_flutter/src/screens/history_screen.dart';
 import 'package:mangareader_flutter/src/screens/home_screen.dart';
 import 'package:mangareader_flutter/src/screens/settings_screen.dart';
+import 'package:mangareader_flutter/src/theme/app_theme.dart';
 
 class MangaApp extends ConsumerWidget {
   const MangaApp({super.key});
@@ -12,23 +13,14 @@ class MangaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final accentColor = ref.watch(accentColorProvider);
 
     return MaterialApp(
       title: 'Manga Neko',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
-      theme: ThemeData.light(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepOrange,
-          brightness: Brightness.light,
-        ),
-      ),
-      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepOrange,
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: buildAppTheme(accentColor, Brightness.light),
+      darkTheme: buildAppTheme(accentColor, Brightness.dark),
       home: const MainNavigationScreen(),
     );
   }

@@ -70,7 +70,9 @@ class DownloadsScreen extends ConsumerWidget {
                       LinearProgressIndicator(value: progress),
                       const SizedBox(height: 2),
                       Text('Mengunduh ${(progress * 100).toInt()}%',
-                          style: const TextStyle(fontSize: 10, color: Colors.deepOrange)),
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context).colorScheme.primary)),
                     ] else
                       Text('${item.pageCount} Halaman tersimpan',
                           style: const TextStyle(fontSize: 11, color: Colors.grey)),

@@ -141,8 +141,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                       ],
                     ),
                     const Divider(),
-                    const Text('Mode Baca',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.deepOrange)),
+                    Text('Mode Baca',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(ctx).colorScheme.primary)),
                     const SizedBox(height: 8),
                     SegmentedButton<ReaderMode>(
                       segments: const [
@@ -184,8 +184,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                       ),
                     ],
                     const SizedBox(height: 12),
-                    const Text('Warna Latar Belakang',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.deepOrange)),
+                    Text('Warna Latar Belakang',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(ctx).colorScheme.primary)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -203,8 +203,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                       children: [
                         const Icon(Icons.brightness_medium, size: 18),
                         const SizedBox(width: 8),
-                        const Text('Redupkan Layar (Night Filter)',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.deepOrange)),
+                        Text('Redupkan Layar (Night Filter)',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.primary)),
                         const Spacer(),
                         Text('${(_screenDim * 100).toInt()}%',
                             style: const TextStyle(fontSize: 12, color: Colors.grey)),
@@ -248,7 +248,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             color: color,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? Colors.deepOrange : Colors.grey.shade700,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade700,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -305,15 +305,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                     final isCurrent = idx == _currentIndex;
                     return ListTile(
                       selected: isCurrent,
-                      selectedTileColor: Colors.deepOrange.withValues(alpha: 0.15),
+                      selectedTileColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                       leading: Icon(
                         isCurrent ? Icons.play_circle_filled : Icons.bookmark_border,
-                        color: isCurrent ? Colors.deepOrange : Colors.grey,
+                        color: isCurrent ? Theme.of(context).colorScheme.primary : Colors.grey,
                       ),
                       title: Text(
                         ch.title,
                         style: TextStyle(
-                          color: isCurrent ? Colors.deepOrange : Colors.white,
+                          color: isCurrent ? Theme.of(context).colorScheme.primary : Colors.white,
                           fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),

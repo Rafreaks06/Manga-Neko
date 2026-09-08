@@ -56,6 +56,63 @@ final readerModeProvider = StateNotifierProvider<ReaderModeNotifier, ReaderMode>
   return ReaderModeNotifier(prefs);
 });
 
+class AccentColorNotifier extends StateNotifier<Color> {
+  final SharedPreferences _prefs;
+  static const _key = 'app_accent_color';
+  static const defaultColor = Color(0xFFFF5722);
+
+  AccentColorNotifier(this._prefs)
+      : super(Color(_prefs.getInt(_key) ?? defaultColor.toARGB32()));
+
+  Future<void> setAccentColor(Color color) async {
+    state = color;
+    await _prefs.setInt(_key, color.toARGB32());
+  }
+}
+
+final accentColorProvider = StateNotifierProvider<AccentColorNotifier, Color>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return AccentColorNotifier(prefs);
+});
+
+/// Batasan konten sensitif: `false` (default) berarti genre dewasa
+/// (Ecchi, Gore, dll.) disembunyikan dari Eksplorasi & Pencarian.
+class ShowSensitiveGenresNotifier extends StateNotifier<bool> {
+  final SharedPreferences _prefs;
+  static const _key = 'show_sensitive_genres';
+
+  ShowSensitiveGenresNotifier(this._prefs)
+      : super(_prefs.getBool(_key) ?? false);
+
+  Future<void> setShowSensitive(bool value) async {
+    state = value;
+    await _prefs.setBool(_key, value);
+  }
+}
+
+final showSensitiveGenresProvider =
+    StateNotifierProvider<ShowSensitiveGenresNotifier, bool>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ShowSensitiveGenresNotifier(prefs);
+});
+
+class SelectedGenresNotifier extends StateNotifier<Set<String>> {
+  SelectedGenresNotifier() : super({});
+
+  void setAll(Set<String> genres) {
+    state = Set<String>.from(genres);
+  }
+
+  void clear() {
+    state = {};
+  }
+}
+
+final selectedGenresProvider =
+    StateNotifierProvider<SelectedGenresNotifier, Set<String>>((ref) {
+  return SelectedGenresNotifier();
+});
+
 final currentSourceProvider = StateProvider<MangaSource>((ref) => MangaSource.komiku);
 
 class PaginatedMangaState {
@@ -90,7 +147,28 @@ class PaginatedMangaState {
   }
 }
 
-final selectedGenreProvider = StateProvider<String?>((ref) => null);
+/// Mengambil halaman [page] untuk satu genre.
+Future<List<MangaSummary>> _fetchGenrePage(MangaSource source, String genre, int page) {
+  return rust_api.getMangaByGenre(source: source, genre: genre, page: page);
+}
+
+/// Multi-genre: gabungkan (union) hasil tiap genre dengan dedupe berdasarkan id,
+/// karena backend Rust hanya menyediakan filter satu genre per permintaan.
+Future<List<MangaSummary>> _fetchMergedGenrePages(
+    MangaSource source, Set<String> genres, int page) async {
+  final results = await Future.wait(
+    genres.map((g) => _fetchGenrePage(source, g, page)),
+  );
+  final seen = <String>{};
+  final merged = <MangaSummary>[];
+  for (final list in results) {
+    for (final item in list) {
+      final key = '${item.source.name}:${item.id}';
+      if (seen.add(key)) merged.add(item);
+    }
+  }
+  return merged;
+}
 
 class CatalogNotifier extends StateNotifier<AsyncValue<PaginatedMangaState>> {
   final Ref ref;
@@ -103,12 +181,14 @@ class CatalogNotifier extends StateNotifier<AsyncValue<PaginatedMangaState>> {
   Future<void> loadInitial() async {
     state = const AsyncValue.loading();
     try {
-      final selectedGenre = ref.read(selectedGenreProvider);
+      final selectedGenres = ref.read(selectedGenresProvider);
       final List<MangaSummary> list;
-      if (selectedGenre != null && selectedGenre.isNotEmpty) {
-        list = await rust_api.getMangaByGenre(source: source, genre: selectedGenre, page: 1);
-      } else {
+      if (selectedGenres.isEmpty) {
         list = await rust_api.getLatestManga(source: source, page: 1);
+      } else if (selectedGenres.length == 1) {
+        list = await _fetchGenrePage(source, selectedGenres.first, 1);
+      } else {
+        list = await _fetchMergedGenrePages(source, selectedGenres, 1);
       }
       state = AsyncValue.data(PaginatedMangaState(
         items: list,
@@ -129,12 +209,14 @@ class CatalogNotifier extends StateNotifier<AsyncValue<PaginatedMangaState>> {
     state = AsyncValue.data(currentState.copyWith(isLoadingMore: true));
     try {
       final nextPage = currentState.currentPage + 1;
-      final selectedGenre = ref.read(selectedGenreProvider);
+      final selectedGenres = ref.read(selectedGenresProvider);
       final List<MangaSummary> newItems;
-      if (selectedGenre != null && selectedGenre.isNotEmpty) {
-        newItems = await rust_api.getMangaByGenre(source: source, genre: selectedGenre, page: nextPage);
-      } else {
+      if (selectedGenres.isEmpty) {
         newItems = await rust_api.getLatestManga(source: source, page: nextPage);
+      } else if (selectedGenres.length == 1) {
+        newItems = await _fetchGenrePage(source, selectedGenres.first, nextPage);
+      } else {
+        newItems = await _fetchMergedGenrePages(source, selectedGenres, nextPage);
       }
 
       if (newItems.isEmpty) {

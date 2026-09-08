@@ -1,23 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mangareader_flutter/src/models/genre_catalog.dart';
 import 'package:mangareader_flutter/src/providers/app_providers.dart';
 import 'package:mangareader_flutter/src/rust/api/models.dart';
+import 'package:mangareader_flutter/src/screens/genre_picker_sheet.dart';
+import 'package:mangareader_flutter/src/widgets/genre_visual_card.dart';
 import 'package:mangareader_flutter/src/widgets/manga_card.dart';
-
-const popularGenres = [
-  'action',
-  'adventure',
-  'comedy',
-  'drama',
-  'ecchi',
-  'fantasy',
-  'isekai',
-  'romance',
-  'school-life',
-  'sci-fi',
-  'slice-of-life',
-  'supernatural',
-];
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -34,8 +22,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final query = ref.watch(searchQueryProvider);
     final currentSource = ref.watch(currentSourceProvider);
-    final selectedGenre = ref.watch(selectedGenreProvider);
+    final selectedGenres = ref.watch(selectedGenresProvider);
+    final showSensitive = ref.watch(showSensitiveGenresProvider);
     final isSearchMode = _isSearching && query.trim().isNotEmpty;
+    final quickGenres = visibleGenres(showSensitive).take(8).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -43,14 +33,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Cari di ${currentSource.name.toUpperCase()}...',
-                  border: InputBorder.none,
-                ),
                 onSubmitted: (value) {
                   ref.read(searchQueryProvider.notifier).state = value;
                 },
+                decoration: InputDecoration(
+                  hintText: 'Cari di ${currentSource.name.toUpperCase()}...',
+                  border: InputBorder.none,
+                  filled: false,
+                ),
               )
             : Row(
                 mainAxisSize: MainAxisSize.min,
@@ -127,41 +117,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: isSearchMode
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'genre_fab',
+              onPressed: () => showGenrePickerSheet(context),
+              icon: const Icon(Icons.grid_view_rounded),
+              label: const Text('Genre'),
+            ),
       body: Column(
         children: [
           if (!isSearchMode)
-            Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(vertical: 6),
+            SizedBox(
+              height: 104,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: const Text('Semua'),
-                      selected: selectedGenre == null,
-                      onSelected: (val) {
-                        ref.read(selectedGenreProvider.notifier).state = null;
-                        ref.read(catalogProvider(currentSource).notifier).refresh();
-                      },
-                    ),
+                  _AllGenresCard(
+                    selected: selectedGenres.isEmpty,
+                    onTap: () {
+                      ref.read(selectedGenresProvider.notifier).clear();
+                      ref.read(catalogProvider(currentSource).notifier).refresh();
+                    },
                   ),
-                  ...popularGenres.map((g) {
-                    final isSel = selectedGenre == g;
+                  ...quickGenres.map((g) {
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(g[0].toUpperCase() + g.substring(1)),
-                        selected: isSel,
-                        onSelected: (val) {
-                          ref.read(selectedGenreProvider.notifier).state = val ? g : null;
-                          ref.read(catalogProvider(currentSource).notifier).refresh();
-                        },
+                      padding: const EdgeInsets.only(left: 8),
+                      // Lebar tetap: ListView horizontal memberi lebar tak
+                      // terbatas, dan Stack di dalam kartu butuh constraint
+                      // finit agar tidak melempar layout exception.
+                      child: SizedBox(
+                        width: 92,
+                        child: GenreVisualCard(
+                          genre: g,
+                          height: 84,
+                          onTap: () {
+                            ref.read(selectedGenresProvider.notifier).setAll({g.slug});
+                            ref.read(catalogProvider(currentSource).notifier).refresh();
+                          },
+                          selected: selectedGenres.contains(g.slug),
+                        ),
                       ),
                     );
                   }),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: _MoreGenresCard(
+                      onTap: () => showGenrePickerSheet(context),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -169,6 +174,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: isSearchMode ? const SearchResultView() : const LatestMangaView(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AllGenresCard extends StatelessWidget {
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _AllGenresCard({required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 92,
+        height: 84,
+        decoration: BoxDecoration(
+          color: selected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected ? scheme.primary : Colors.transparent,
+            width: 2.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.apps_rounded,
+              size: 30,
+              color: selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Semua',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: selected ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MoreGenresCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _MoreGenresCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 92,
+        height: 84,
+        decoration: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.grid_view_rounded, size: 30, color: scheme.onSecondaryContainer),
+            const SizedBox(height: 6),
+            Text(
+              'Semua Genre',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -207,11 +297,12 @@ class _LatestMangaViewState extends ConsumerState<LatestMangaView> {
   @override
   Widget build(BuildContext context) {
     final source = ref.watch(currentSourceProvider);
+    final showSensitive = ref.watch(showSensitiveGenresProvider);
     final catalogAsync = ref.watch(catalogProvider(source));
 
     return catalogAsync.when(
       data: (paginated) {
-        final items = paginated.items;
+        final items = filterSensitiveContent(paginated.items, showSensitive);
         if (items.isEmpty) {
           return const Center(child: Text('Tidak ada manga ditemukan.'));
         }
@@ -221,7 +312,7 @@ class _LatestMangaViewState extends ConsumerState<LatestMangaView> {
             controller: _scrollController,
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 80),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -285,10 +376,12 @@ class SearchResultView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchResults = ref.watch(searchResultsProvider);
+    final showSensitive = ref.watch(showSensitiveGenresProvider);
 
     return searchResults.when(
       data: (items) {
-        if (items.isEmpty) {
+        final visibleItems = filterSensitiveContent(items, showSensitive);
+        if (visibleItems.isEmpty) {
           return const Center(child: Text('Hasil pencarian kosong.'));
         }
         return GridView.builder(
@@ -299,9 +392,9 @@ class SearchResultView extends ConsumerWidget {
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
           ),
-          itemCount: items.length,
+          itemCount: visibleItems.length,
           itemBuilder: (context, index) {
-            final item = items[index];
+            final item = visibleItems[index];
             return MangaCard(item: item);
           },
         );
